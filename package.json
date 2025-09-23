@@ -1,0 +1,26 @@
+{
+  "name": "revision-app",
+  "version": "1.0.0",
+  "description": "A comprehensive revision app with browser extension, dashboard, and backend API",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "backend",
+    "dashboard-app",
+    "extension"
+  ],
+  "scripts": {
+    "install:all": "npm install",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:dashboard": "npm run dev --workspace=dashboard-app",
+    "dev:extension": "npm run dev --workspace=extension",
+    "build:backend": "npm run build --workspace=backend",
+    "build:dashboard": "npm run build --workspace=dashboard-app", 
+    "build:extension": "npm run build --workspace=extension",
+    "build:all": "npm run build --workspace=backend && npm run build --workspace=dashboard-app && npm run build --workspace=extension",
+    "lint:all": "npm run lint --workspace=backend && npm run lint --workspace=dashboard-app && npm run lint --workspace=extension"
+  },
+  "keywords": ["revision", "study", "browser-extension", "education"],
+  "author": "Your Name",
+  "license": "MIT"
+}
