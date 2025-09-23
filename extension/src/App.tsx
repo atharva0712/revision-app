@@ -116,6 +116,14 @@ const App: React.FC = () => {
     setRecentExtractions([]);
   };
 
+  const handleGoToDashboard = async () => {
+    const token = await authService.getToken();
+    if (token) {
+      const url = `http://localhost:5173/dashboard?token=${token}`;
+      chrome.tabs.create({ url });
+    }
+  };
+
   const handleClearContentAndTopics = async () => {
     setContent(null);
     setTopics([]);
@@ -157,7 +165,13 @@ const App: React.FC = () => {
 
   return (
     <div className="p-4">
-      <div className="flex justify-end mb-2">
+      <div className="flex justify-end mb-2 space-x-2">
+        <button
+          onClick={handleGoToDashboard}
+          className="bg-blue-500 text-white px-3 py-1 rounded shadow hover:bg-blue-600 text-sm"
+        >
+          Dashboard
+        </button>
         <button
           onClick={handleLogout}
           className="bg-red-500 text-white px-3 py-1 rounded shadow hover:bg-red-600 text-sm"

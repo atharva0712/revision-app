@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { register, login } from '../controllers/auth.controller.js';
+import { register, login, getMe } from '../controllers/auth.controller.js';
+import auth from '../middleware/auth.js';
 
 const router = Router();
 
@@ -12,5 +13,10 @@ router.post('/register', register);
 // @desc    Authenticate user & get token
 // @access  Public
 router.post('/login', login);
+
+// @route   GET /api/auth/me
+// @desc    Get user data from token
+// @access  Private
+router.get('/me', auth, getMe);
 
 export default router;

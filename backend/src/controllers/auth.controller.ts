@@ -47,7 +47,30 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Authenticate user & get token (Login)
+// @route   GET /api/auth/me
+// @desc    Get user data from token
+// @access  Private
+export const getMe = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // The auth middleware has already attached the user id
+    if (!req.user || !req.user.id) {
+      res.status(401).json({ success: false, message: 'Not authorized' });
+      return;
+    }
+
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+
+    res.json({ success: true, user: { id: user.id, name: user.name, email: user.email } });
+
+  } catch (err: any) {
+    console.error(err.message);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};// Authenticate user & get token (Login)
 export const login = async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
 
