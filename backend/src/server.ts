@@ -39,6 +39,7 @@ app.use(
       "http://localhost:3001",
       "http://localhost:8000",
       "http://localhost:5173",
+      "http://localhost:8081",
     ],
     methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-auth-token"],

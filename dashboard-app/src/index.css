@@ -2,7 +2,229 @@
 @tailwind components;
 @tailwind utilities;
 
-.perspective-1000 { perspective: 1000px; }
-.transform-style-preserve-3d { transform-style: preserve-3d; }
-.rotate-y-180 { transform: rotateY(180deg); }
-.backface-hidden { backface-visibility: hidden; }
+/* Cyber Revision Dashboard Design System
+All colors MUST be HSL for perfect theming.
+*/
+
+@layer base {
+  :root {
+    /* Cyber Dark Theme */
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+
+    --card: 224 71% 6%;
+    --card-foreground: 213 31% 91%;
+
+    --popover: 224 71% 6%;
+    --popover-foreground: 213 31% 91%;
+
+    --primary: 195 100% 50%;
+    --primary-foreground: 224 71% 4%;
+
+    --secondary: 262 83% 58%;
+    --secondary-foreground: 213 31% 91%;
+
+    --muted: 224 71% 10%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 188 95% 56%;
+    --accent-foreground: 224 71% 4%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 213 31% 91%;
+
+    --border: 224 71% 15%;
+    --input: 224 71% 10%;
+    --ring: 195 100% 50%;
+
+    --radius: 0.75rem;
+
+    /* Cyber-specific design tokens */
+    --neon-blue: 195 100% 50%;
+    --neon-cyan: 188 95% 56%;
+    --neon-purple: 262 83% 58%;
+    --electric-blue: 214 100% 65%;
+    --deep-space: 224 71% 4%;
+    --space-gray: 224 71% 10%;
+
+    /* Gradients */
+    --gradient-cyber: linear-gradient(
+      135deg,
+      hsl(195 100% 50% / 0.2),
+      hsl(262 83% 58% / 0.2)
+    );
+    --gradient-neon: linear-gradient(
+      90deg,
+      hsl(195 100% 50%),
+      hsl(188 95% 56%)
+    );
+    --gradient-electric: linear-gradient(
+      135deg,
+      hsl(214 100% 65%),
+      hsl(262 83% 58%)
+    );
+    --gradient-space: linear-gradient(180deg, hsl(224 71% 4%), hsl(224 71% 8%));
+
+    /* Shadows & Glows */
+    --glow-primary: 0 0 20px hsl(195 100% 50% / 0.5);
+    --glow-secondary: 0 0 20px hsl(262 83% 58% / 0.5);
+    --glow-accent: 0 0 20px hsl(188 95% 56% / 0.5);
+    --shadow-cyber: 0 10px 30px -5px hsl(195 100% 50% / 0.3);
+    --shadow-deep: 0 25px 50px -12px hsl(224 71% 4% / 0.8);
+
+    /* Animation timing */
+    --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* Cyber UI Components */
+  .cyber-glow {
+    box-shadow: var(--glow-primary);
+  }
+
+  .cyber-glow-secondary {
+    box-shadow: var(--glow-secondary);
+  }
+
+  .cyber-glow-accent {
+    box-shadow: var(--glow-accent);
+  }
+
+  .cyber-border {
+    border: 1px solid hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 10px hsl(var(--primary) / 0.2);
+  }
+
+  .cyber-gradient {
+    background: var(--gradient-cyber);
+  }
+
+  .neon-gradient {
+    background: var(--gradient-neon);
+  }
+
+  .electric-gradient {
+    background: var(--gradient-electric);
+  }
+
+  .space-gradient {
+    background: var(--gradient-space);
+  }
+
+  .hover-glow {
+    transition: var(--transition-smooth);
+  }
+
+  .hover-glow:hover {
+    box-shadow: var(--glow-primary);
+    transform: translateY(-2px);
+  }
+
+  .cyber-card {
+    @apply bg-card border cyber-border rounded-xl;
+    backdrop-filter: blur(10px);
+  }
+
+  .flashcard-3d {
+    perspective: 1000px;
+  }
+
+  .flashcard-flip {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .flashcard-flip.flipped {
+    transform: rotateY(180deg);
+  }
+
+  .flashcard-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Front face - no rotation needed */
+  .flashcard-face:not(.flashcard-back) {
+    transform: rotateY(0deg);
+  }
+
+  /* Back face - rotate 180deg so it's hidden initially */
+  .flashcard-back {
+    transform: rotateY(180deg);
+  }
+}

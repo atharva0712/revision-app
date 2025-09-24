@@ -1,123 +1,259 @@
-import React, { useEffect, useState } from 'react';
-import { topicService } from '../services/topicService';
-import { useAuth } from '../contexts/AuthContext';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { TopicCard } from '@/components/TopicCard';
+import { Loading } from '@/components/ui/loading';
+import { useAuth } from '@/contexts/AuthContext';
+import { ApiClient, ITopic } from '@/lib/api';
+import { LogOut, Brain, BookOpen, TrendingUp, User } from 'lucide-react';
+import cyberHero from '@/assets/cyber-dashboard-hero.jpg';
 
-// Define interfaces for the data structures
-interface ITopic {
-  _id: string;
-  name: string;
-  description: string;
-  sourceTitle: string;
-  // ... other topic properties
-}
-
-interface IProgress {
-  topic: string; // Topic ID
-  assessmentScore?: number;
-  flashcardsCompletedAt?: Date;
-}
-
-interface GroupedTopics {
-  [sourceTitle: string]: ITopic[];
-}
-
-const DashboardPage: React.FC = () => {
-  const [groupedTopics, setGroupedTopics] = useState<GroupedTopics>({});
-  const [progress, setProgress] = useState<Record<string, IProgress>>({});
+export const Dashboard: React.FC = () => {
+  const { user, token, logout } = useAuth();
+  const [topics, setTopics] = useState<ITopic[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { token } = useAuth();
+  const navigate = useNavigate();
+
+  const apiClient = new ApiClient(token);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!token) {
-        setLoading(false);
-        return;
+    fetchTopics();
+  }, []);
+
+  const fetchTopics = async () => {
+    try {
+      const response = await apiClient.getTopics();
+      if (response.success) {
+        setTopics(response.topics);
       }
-      try {
-        setLoading(true);
-        const [topicsRes, progressRes] = await Promise.all([
-          topicService.getTopics(token),
-          topicService.getProgress(token),
-        ]);
+    } catch (error) {
+      console.error('Error fetching topics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        if (!topicsRes.success || !progressRes.success) {
-          throw new Error('Failed to fetch data');
-        }
+  const handleStudy = (topicId: string) => {
+    navigate(`/study/${topicId}`);
+  };
 
-        // Group topics by sourceTitle
-        const groups: GroupedTopics = topicsRes.topics.reduce((acc: GroupedTopics, topic: ITopic) => {
-          const source = topic.sourceTitle || 'Uncategorized';
-          if (!acc[source]) {
-            acc[source] = [];
-          }
-          acc[source].push(topic);
-          return acc;
-        }, {});
-        setGroupedTopics(groups);
+  const handleAssessment = (topicId: string) => {
+    navigate(`/assessment/${topicId}`);
+  };
 
-        // Map progress to a dictionary for easy lookup
-        const progressMap = progressRes.progress.reduce((acc: Record<string, IProgress>, p: IProgress) => {
-          acc[p.topic] = p;
-          return acc;
-        }, {});
-        setProgress(progressMap);
-
-      } catch (err: any) {
-        setError(err.message || 'An error occurred while fetching your topics.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [token]);
+  const handleLogout = () => {
+    logout();
+  };
 
   if (loading) {
-    return <div className="text-center p-10">Loading your dashboard...</div>;
-  }
-
-  if (error) {
-    return <div className="text-center p-10 text-red-500">Error: {error}</div>;
+    return (
+      <div className="min-h-screen bg-space-gradient flex items-center justify-center">
+        <Loading size="lg" text="Loading your dashboard..." />
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Topics</h1>
-      {Object.keys(groupedTopics).length === 0 ? (
-        <p className="text-gray-500 dark:text-gray-400">You haven't added any topics yet. Use the browser extension to scan and add topics.</p>
-      ) : (
-        Object.entries(groupedTopics).map(([sourceTitle, topics]) => (
-          <div key={sourceTitle} className="p-4 bg-white rounded-lg shadow-md dark:bg-gray-800">
-            <h2 className="text-xl font-semibold mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">{sourceTitle}</h2>
-            <div className="space-y-3">
-              {topics.map((topic) => (
-                <div key={topic._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md dark:bg-gray-700">
-                  <div>
-                    <h3 className="font-bold">{topic.name}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{topic.description}</p>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    {progress[topic._id] && (
-                      <div className="text-xs text-cyan-500">
-                        {progress[topic._id].assessmentScore !== undefined ? `Score: ${progress[topic._id].assessmentScore}` : 'Completed'}
-                      </div>
-                    )}
-                    <Link to={`/revision/${topic._id}`}>
-                      <button className="px-4 py-2 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800">
-                        Start Revision
-                      </button>
-                    </Link>
+    <div className="min-h-screen bg-space-gradient">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
+          style={{ backgroundImage: `url(${cyberHero})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/60 to-transparent" />
+        
+        <div className="relative z-10 p-6">
+          <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center justify-between mb-8"
+            >
+              <div className="flex items-center space-x-4">
+                <motion.div
+                  className="w-12 h-12 bg-neon-gradient rounded-full flex items-center justify-center"
+                  whileHover={{ scale: 1.1 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  <Brain className="w-6 h-6 text-primary-foreground" />
+                </motion.div>
+                <div>
+                  <h1 className="text-3xl font-bold bg-neon-gradient bg-clip-text text-transparent">
+                    Revision Dashboard
+                  </h1>
+                  <p className="text-muted-foreground">Master your learning journey</p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-3">
+                  <Avatar className="cyber-border">
+                    <AvatarFallback className="bg-secondary text-secondary-foreground">
+                      {user?.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="hidden sm:block">
+                    <p className="font-medium text-foreground">{user?.name}</p>
+                    <p className="text-sm text-muted-foreground">{user?.email}</p>
                   </div>
                 </div>
-              ))}
+                <Button
+                  onClick={handleLogout}
+                  variant="outline"
+                  size="sm"
+                  className="cyber-border hover:shadow-glow-primary"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </div>
+            </motion.div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <Card className="cyber-card">
+                  <CardContent className="p-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <BookOpen className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-foreground">{topics.length}</p>
+                        <p className="text-sm text-muted-foreground">Topics</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Card className="cyber-card">
+                  <CardContent className="p-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-secondary/10 rounded-lg">
+                        <Brain className="w-6 h-6 text-secondary" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-foreground">
+                          {topics.reduce((acc, topic) => acc + topic.flashcards.length, 0)}
+                        </p>
+                        <p className="text-sm text-muted-foreground">Flashcards</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <Card className="cyber-card">
+                  <CardContent className="p-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-accent/10 rounded-lg">
+                        <TrendingUp className="w-6 h-6 text-accent" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-foreground">
+                          {topics.reduce((acc, topic) => acc + topic.assessment.length, 0)}
+                        </p>
+                        <p className="text-sm text-muted-foreground">Questions</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <Card className="cyber-card">
+                  <CardContent className="p-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-neon-purple/10 rounded-lg">
+                        <User className="w-6 h-6 text-neon-purple" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-neon-purple">85%</p>
+                        <p className="text-sm text-muted-foreground">Average Score</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             </div>
           </div>
-        ))
-      )}
+        </div>
+      </div>
+
+      {/* Topics Grid */}
+      <div className="px-6 pb-6">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mb-6"
+          >
+            <h2 className="text-2xl font-bold text-foreground mb-2">Your Learning Topics</h2>
+            <p className="text-muted-foreground">Continue your revision journey</p>
+          </motion.div>
+
+          {topics.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="text-center py-12"
+            >
+              <Card className="cyber-card max-w-md mx-auto">
+                <CardContent className="p-8">
+                  <Brain className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No Topics Yet</h3>
+                  <p className="text-muted-foreground">
+                    Your learning topics will appear here once they're added to your account.
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {topics.map((topic, index) => (
+                <motion.div
+                  key={topic._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 + index * 0.1 }}
+                >
+                  <TopicCard
+                    topic={topic}
+                    onStudy={handleStudy}
+                    onAssessment={handleAssessment}
+                    progress={Math.floor(Math.random() * 100)} // TODO: Real progress tracking
+                  />
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
-
-export default DashboardPage;

@@ -136,3 +136,7 @@ extension/web-accessible-resources/
 
 # Local development
 .local
+pnpm-debug.log*
+
+# Dashboard app
+dashboard-app/dist/

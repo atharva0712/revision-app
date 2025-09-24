@@ -1,38 +1,58 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from './contexts/ThemeContext';
-import Layout from './components/Layout';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/Login';
-import RegisterPage from './pages/Register';
-import DashboardPage from './pages/Dashboard';
-import RevisionPage from './pages/RevisionPage';
-import ProtectedRoute from './components/ProtectedRoute';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { Auth } from "./pages/Auth";
+import { Dashboard } from "./pages/Dashboard";
+import { StudyPage } from "./pages/StudyPage";
+import { AssessmentPage } from "./pages/AssessmentPage";
+import NotFound from "./pages/NotFound";
 
-import { AuthProvider } from './contexts/AuthContext';
+const queryClient = new QueryClient();
 
-function App() {
-  return (
-    <ThemeProvider>
-      <Router>
-        <AuthProvider>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              
-              {/* Protected Routes */}
-              <Route element={<ProtectedRoute />}>
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/revision/:topicId" element={<RevisionPage />} />
-              </Route>
-
-            </Routes>
-          </Layout>
-        </AuthProvider>
-      </Router>
-    </ThemeProvider>
-  );
-}
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/study/:topicId" 
+              element={
+                <ProtectedRoute>
+                  <StudyPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/assessment/:topicId" 
+              element={
+                <ProtectedRoute>
+                  <AssessmentPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
+  </QueryClientProvider>
+);
 
 export default App;
