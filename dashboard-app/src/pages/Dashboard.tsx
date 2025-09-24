@@ -3,6 +3,12 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { TopicCard } from '@/components/TopicCard';
 import { Loading } from '@/components/ui/loading';
@@ -234,23 +240,44 @@ export const Dashboard: React.FC = () => {
               </Card>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {topics.map((topic, index) => (
+            <Accordion type="single" collapsible className="w-full space-y-4">
+              {Object.entries(
+                topics.reduce((acc, topic) => {
+                  const sourceTitle = topic.sourceTitle || 'Uncategorized';
+                  if (!acc[sourceTitle]) {
+                    acc[sourceTitle] = [];
+                  }
+                  acc[sourceTitle].push(topic);
+                  return acc;
+                }, {} as Record<string, ITopic[]>)
+              ).map(([sourceTitle, topics], index) => (
                 <motion.div
-                  key={topic._id}
+                  key={sourceTitle}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6 + index * 0.1 }}
                 >
-                  <TopicCard
-                    topic={topic}
-                    onStudy={handleStudy}
-                    onAssessment={handleAssessment}
-                    progress={Math.floor(Math.random() * 100)} // TODO: Real progress tracking
-                  />
+                  <AccordionItem value={sourceTitle} className="cyber-card">
+                    <AccordionTrigger className="p-6 text-lg font-bold text-foreground">
+                      {sourceTitle}
+                    </AccordionTrigger>
+                    <AccordionContent className="p-6 pt-0">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {topics.map((topic) => (
+                          <TopicCard
+                            key={topic._id}
+                            topic={topic}
+                            onStudy={handleStudy}
+                            onAssessment={handleAssessment}
+                            progress={Math.floor(Math.random() * 100)} // TODO: Real progress tracking
+                          />
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
                 </motion.div>
               ))}
-            </div>
+            </Accordion>
           )}
         </div>
       </div>
