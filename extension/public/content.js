@@ -1,5 +1,8 @@
 // Content script for Learning Content Extractor extension
-console.log('Learning Content Extractor content script loaded on:', window.location.href);
+// Prevent multiple injections
+if (!window.learningExtractorLoaded) {
+  window.learningExtractorLoaded = true;
+  console.log('Learning Content Extractor content script loaded on:', window.location.href);
 
 // Content extraction utilities
 class ContentExtractor {
@@ -185,8 +188,36 @@ class ContentExtractor {
 // Initialize extractor
 const extractor = new ContentExtractor();
 
+// Check if extension context is valid
+function isExtensionContextValid() {
+  try {
+    return chrome.runtime && chrome.runtime.id;
+  } catch (error) {
+    return false;
+  }
+}
+
+// Safe message sending with context validation
+function safeSendMessage(message, callback) {
+  if (!isExtensionContextValid()) {
+    console.warn('Extension context invalidated, skipping message send');
+    return;
+  }
+  
+  try {
+    chrome.runtime.sendMessage(message, callback);
+  } catch (error) {
+    console.warn('Failed to send message to extension:', error.message);
+  }
+}
+
 // Handle messages from popup and background script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (!isExtensionContextValid()) {
+    console.warn('Extension context invalidated, ignoring message');
+    return;
+  }
+  
   console.log('Content script received message:', message);
   
   switch (message.type) {
@@ -240,16 +271,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Auto-extraction functionality (if enabled)
 function checkAutoExtraction() {
-  chrome.storage.local.get('settings', (result) => {
-    if (result.settings?.autoExtract) {
-      // Wait for page to load completely
-      if (document.readyState === 'complete') {
-        performAutoExtraction();
-      } else {
-        window.addEventListener('load', performAutoExtraction);
+  if (!isExtensionContextValid()) {
+    return;
+  }
+  
+  try {
+    chrome.storage.local.get('settings', (result) => {
+      if (chrome.runtime.lastError) {
+        console.warn('Storage access failed:', chrome.runtime.lastError);
+        return;
       }
-    }
-  });
+      
+      if (result.settings?.autoExtract) {
+        // Wait for page to load completely
+        if (document.readyState === 'complete') {
+          performAutoExtraction();
+        } else {
+          window.addEventListener('load', performAutoExtraction);
+        }
+      }
+    });
+  } catch (error) {
+    console.warn('Extension context error in checkAutoExtraction:', error);
+  }
 }
 
 function performAutoExtraction() {
@@ -269,7 +313,7 @@ function performAutoExtraction() {
   if (shouldAutoExtract) {
     const content = extractor.extract();
     if (content.wordCount > 200) { // Only extract substantial content
-      chrome.runtime.sendMessage({
+      safeSendMessage({
         type: 'EXTRACT_CONTENT',
         data: content
       });
@@ -282,6 +326,10 @@ checkAutoExtraction();
 
 // Add visual indicator when extension is active
 function addExtensionIndicator() {
+  if (!isExtensionContextValid()) {
+    return;
+  }
+  
   const indicator = document.createElement('div');
   indicator.id = 'learning-extractor-indicator';
   indicator.style.cssText = `
@@ -303,7 +351,7 @@ function addExtensionIndicator() {
   
   indicator.addEventListener('click', () => {
     const content = extractor.extract();
-    chrome.runtime.sendMessage({
+    safeSendMessage({
       type: 'EXTRACT_CONTENT',
       data: content
     });
@@ -338,3 +386,7 @@ window.learningExtractor = {
 };
 
 console.log('Content script initialization complete');
+
+} else {
+  console.log('Learning Content Extractor already loaded, skipping duplicate injection');
+}

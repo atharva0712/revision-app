@@ -28,7 +28,12 @@ const TopicsPreview: React.FC<TopicsPreviewProps> = ({ topics, setTopics, conten
     const selectedTopics = topics.filter(topic => topic.selected);
     
     if (selectedTopics.length === 0) {
-      alert('Please select at least one topic to process.');
+      // Create a temporary notification
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-4 right-4 bg-yellow-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm font-medium';
+      notification.textContent = '⚠️ Please select at least one topic to process';
+      document.body.appendChild(notification);
+      setTimeout(() => notification.remove(), 3000);
       return;
     }
 
@@ -102,7 +107,12 @@ const TopicsPreview: React.FC<TopicsPreviewProps> = ({ topics, setTopics, conten
 
   const handleCustomPromptExtraction = async () => {
     if (!customPrompt.trim()) {
-      alert('Please enter a custom prompt.');
+      // Create a temporary notification
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-4 right-4 bg-yellow-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm font-medium';
+      notification.textContent = '✨ Please enter a custom prompt to continue';
+      document.body.appendChild(notification);
+      setTimeout(() => notification.remove(), 3000);
       return;
     }
 
@@ -147,7 +157,12 @@ const TopicsPreview: React.FC<TopicsPreviewProps> = ({ topics, setTopics, conten
       setShowCustomPrompt(false);
       setCustomPrompt('');
       
-      alert(`Successfully re-extracted ${extractedTopics.length} topics with your custom prompt!`);
+      // Show success notification
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 text-sm font-medium flex items-center space-x-2';
+      notification.innerHTML = `<span>🎉</span><span>Successfully re-extracted ${extractedTopics.length} topics with your custom prompt!</span>`;
+      document.body.appendChild(notification);
+      setTimeout(() => notification.remove(), 4000);
 
     } catch (error) {
       console.error('Custom extraction failed:', error);
@@ -166,107 +181,125 @@ const TopicsPreview: React.FC<TopicsPreviewProps> = ({ topics, setTopics, conten
   const selectedCount = topics.filter(topic => topic.selected).length;
 
   return (
-    <div className="p-4">
-      <div className="flex items-center justify-between mb-2 text-gray-700">
-        <div>
-          <span className="font-bold">{content.title}</span>
-          <span className="ml-2 text-xs bg-gray-200 px-2 py-1 rounded">
-            {content.type.toUpperCase()}
-          </span>
+    <div className="space-y-6">
+      <div className="card">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1">
+            <h2 className="font-bold text-slate-100 text-base leading-tight mb-2">{content.title}</h2>
+            <div className="flex items-center space-x-2 text-xs">
+              <span className="bg-gradient-to-r from-cyan-400 to-blue-400 text-slate-900 px-2 py-1 rounded-full font-medium">
+                {content.type.toUpperCase()}
+              </span>
+              <span className="text-slate-400">
+                📊 {content.wordCount} words
+              </span>
+            </div>
+          </div>
         </div>
-        <span className="text-xs text-gray-500">
-          Words: {content.wordCount}
-        </span>
+        <button
+          onClick={onScanNewPage}
+          className="w-full bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white px-4 py-2 rounded-lg text-sm transition-all border border-slate-600 hover:border-slate-500"
+        >
+          🔄 Scan New Page
+        </button>
       </div>
-      <button
-        onClick={onScanNewPage}
-        className="w-full bg-gray-200 text-gray-800 px-3 py-1 rounded shadow hover:bg-gray-300 text-sm mb-4"
-      >
-        Scan New Page
-      </button>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-md font-semibold">Extracted Topics ({selectedCount}/{topics.length} selected)</h3>
-        <div className="flex space-x-2">
-          <button
-            onClick={handleSelectAll}
-            className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded hover:bg-gray-300"
-          >
-            {topics.every(t => t.selected) ? 'Unselect All' : 'Select All'}
-          </button>
-          <button
-            onClick={() => setShowCustomPrompt(!showCustomPrompt)}
-            className="text-xs bg-blue-200 text-blue-700 px-2 py-1 rounded hover:bg-blue-300"
-            disabled={isReextracting}
-          >
-            {showCustomPrompt ? 'Cancel' : 'Custom Prompt'}
-          </button>
-        </div>
-      </div>
-      
-      {showCustomPrompt && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
-          <h4 className="text-sm font-medium mb-2 text-blue-800">Customize Topic Extraction</h4>
-          <p className="text-xs text-blue-600 mb-2">
-            Provide specific instructions for how you want the topics to be extracted:
-          </p>
-          <textarea
-            value={customPrompt}
-            onChange={(e) => setCustomPrompt(e.target.value)}
-            placeholder="e.g., Focus only on technical concepts, or Extract topics related to data analysis, or Include step-by-step processes..."
-            className="w-full text-xs border border-blue-300 rounded p-2 h-16 resize-none focus:outline-none focus:ring-1 focus:ring-blue-400"
-            disabled={isReextracting}
-          />
-          <div className="flex space-x-2 mt-2">
+      <div className="card">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-bold text-slate-100 mb-1">Extracted Topics</h3>
+            <p className="text-sm text-slate-400">
+              🎯 {selectedCount}/{topics.length} selected
+            </p>
+          </div>
+          <div className="flex flex-col space-y-2">
             <button
-              onClick={handleCustomPromptExtraction}
-              disabled={isReextracting || !customPrompt.trim()}
-              className={`text-xs px-3 py-1 rounded font-medium ${
-                isReextracting || !customPrompt.trim()
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+              onClick={handleSelectAll}
+              className="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition-all border border-slate-600"
             >
-              {isReextracting ? 'Re-extracting...' : 'Re-extract Topics'}
+              {topics.every(t => t.selected) ? '✖ Unselect All' : '✓ Select All'}
             </button>
             <button
-              onClick={() => {
-                setShowCustomPrompt(false);
-                setCustomPrompt('');
-              }}
+              onClick={() => setShowCustomPrompt(!showCustomPrompt)}
+              className="btn-secondary text-xs px-3 py-1.5 rounded-lg transition-all"
               disabled={isReextracting}
-              className="text-xs bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300"
             >
-              Cancel
+              {showCustomPrompt ? '✖ Cancel' : '✨ Custom Prompt'}
             </button>
           </div>
         </div>
-      )}
       
-      <div className="space-y-2 mb-4">
-        {topics.length === 0 ? (
-          <div className="text-gray-400">No topics found.</div>
-        ) : (
-          topics.map((topic, idx) => (
-            <TopicItem
-              key={topic.id || idx}
-              topic={topic}
-              onToggleSelect={() => handleToggleSelect(idx)}
-              selected={!!topic.selected}
+        {showCustomPrompt && (
+          <div className="mt-4 p-4 bg-gradient-to-r from-purple-900/20 to-blue-900/20 border border-purple-500/30 rounded-xl backdrop-blur-sm">
+            <div className="flex items-center space-x-2 mb-3">
+              <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+              <h4 className="text-sm font-semibold text-slate-100">🎨 Customize Topic Extraction</h4>
+            </div>
+            <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+              Provide specific instructions to guide the AI extraction process:
+            </p>
+            <textarea
+              value={customPrompt}
+              onChange={(e) => setCustomPrompt(e.target.value)}
+              placeholder="e.g., Focus only on technical concepts, Extract business strategies, Include step-by-step processes, Emphasize practical applications..."
+              className="w-full text-sm bg-slate-800 border border-slate-600 rounded-lg p-3 h-20 resize-none focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-slate-100 placeholder-slate-500"
+              disabled={isReextracting}
             />
-          ))
+            <div className="flex space-x-3 mt-4">
+              <button
+                onClick={handleCustomPromptExtraction}
+                disabled={isReextracting || !customPrompt.trim()}
+                className={`flex-1 text-sm px-4 py-2 rounded-lg font-semibold transition-all transform ${
+                  isReextracting || !customPrompt.trim()
+                    ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                    : 'btn-primary hover:scale-[1.02] active:scale-[0.98]'
+                }`}
+              >
+                {isReextracting ? '🔄 Re-extracting...' : '🚀 Re-extract Topics'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowCustomPrompt(false);
+                  setCustomPrompt('');
+                }}
+                disabled={isReextracting}
+                className="px-4 py-2 text-sm bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded-lg transition-all border border-slate-600"
+              >
+                ✖ Cancel
+              </button>
+            </div>
+          </div>
         )}
+      
+        <div className="space-y-3 mt-4">
+          {topics.length === 0 ? (
+            <div className="text-center py-8 text-slate-400">
+              <div className="text-4xl mb-2">💭</div>
+              <p>No topics found</p>
+            </div>
+          ) : (
+            topics.map((topic, idx) => (
+              <TopicItem
+                key={topic.id || idx}
+                topic={topic}
+                onToggleSelect={() => handleToggleSelect(idx)}
+                selected={!!topic.selected}
+              />
+            ))
+          )}
+        </div>
       </div>
+      
       {topics.length > 0 && (
         <button
           onClick={handleProcessSelectedTopics}
           disabled={selectedCount === 0}
-          className={`w-full px-4 py-3 rounded font-medium transition-colors ${
+          className={`w-full px-6 py-4 rounded-xl font-bold text-base transition-all transform ${
             selectedCount > 0
-              ? 'bg-green-600 text-white hover:bg-green-700'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-green-500/25'
+              : 'bg-slate-700 text-slate-500 cursor-not-allowed'
           }`}
         >
-          Process {selectedCount} Selected Topic{selectedCount !== 1 ? 's' : ''} for Flashcards
+          🚀 Process {selectedCount} Selected Topic{selectedCount !== 1 ? 's' : ''} for Flashcards
         </button>
       )}
     </div>

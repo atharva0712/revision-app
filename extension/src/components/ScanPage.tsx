@@ -37,25 +37,25 @@ const ScanPage: React.FC<ScanPageProps> = ({
 
       const tabId = tabs[0].id;
 
-      // Inject and execute the content script to extract content
+      let response;
       try {
-        await chrome.scripting.executeScript({
-          target: { tabId: tabId },
-          files: ['content.js'],
-        });
-      } catch (injectionError) {
-        console.error('Failed to inject content script:', injectionError);
-        return;
+        console.log("Attempting to send message to content script...");
+        response = await chrome.tabs.sendMessage(tabId, { type: 'EXTRACT_CONTENT' });
+      } catch (e: any) {
+        console.log("Content script not available, injecting...", e.message);
+        if (e.message.includes("Could not establish connection")) {
+          await chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            files: ['content.js'],
+          });
+          // Wait a moment for the script to initialize
+          await new Promise(resolve => setTimeout(resolve, 200));
+          console.log("Retrying to send message...");
+          response = await chrome.tabs.sendMessage(tabId, { type: 'EXTRACT_CONTENT' });
+        } else {
+          throw e; // Re-throw other errors
+        }
       }
-
-      // Send message to content script to extract content
-      const response = await new Promise((resolve) => {
-        chrome.tabs.sendMessage(
-          tabId,
-          { type: 'EXTRACT_CONTENT' },
-          (response) => resolve(response)
-        );
-      });
 
       if (!response?.success) {
         console.error('Content extraction failed:', response?.error);
@@ -138,14 +138,26 @@ const ScanPage: React.FC<ScanPageProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-64 p-4">
-      <h2 className="text-lg font-semibold mb-4">Scan this page for learning topics</h2>
-      <button
-        className="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700"
-        onClick={handleScan}
-      >
-        Scan Page
-      </button>
+    <div className="space-y-6">
+      <div className="text-center space-y-4">
+        <div className="flex items-center justify-center space-x-2 mb-2">
+          <div className="w-8 h-8 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full flex items-center justify-center">
+            <svg className="w-5 h-5 text-slate-900" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </div>
+        <h2 className="text-xl font-bold text-slate-100 mb-2">Ready to Extract Topics</h2>
+        <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+          Click the button below to analyze this page and extract key learning topics using AI
+        </p>
+        <button
+          className="btn-primary w-full py-3 px-6 rounded-xl font-semibold text-base transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+          onClick={handleScan}
+        >
+          🧠 Analyze Page Content
+        </button>
+      </div>
       <RecentExtractions
         recentExtractions={recentExtractions}
         onSelectRecentExtraction={onSelectRecentExtraction}
