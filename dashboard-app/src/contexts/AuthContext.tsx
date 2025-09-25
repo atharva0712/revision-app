@@ -34,23 +34,35 @@ const API_BASE_URL = 'http://localhost:3000/api';
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (token) {
-      fetchUserData();
-    } else {
+    // Initialize auth state from localStorage
+    const initializeAuth = () => {
+      try {
+        const savedToken = localStorage.getItem('authToken');
+        const savedUser = localStorage.getItem('authUser');
+        
+        if (savedToken && savedUser) {
+          setToken(savedToken);
+          setUser(JSON.parse(savedUser));
+        }
+      } catch (error) {
+        console.error('Error loading auth from localStorage:', error);
+      }
       setLoading(false);
-    }
-  }, [token]);
+    };
+    
+    initializeAuth();
+  }, []);
 
-  const fetchUserData = async () => {
+  const fetchUserData = async (authToken: string) => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/me`, {
         headers: {
-          'x-auth-token': token!,
+          'x-auth-token': authToken,
         },
       });
 
@@ -58,16 +70,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (data.success) {
         setUser(data.user);
+        localStorage.setItem('authUser', JSON.stringify(data.user));
+        return data.user;
       } else {
-        localStorage.removeItem('token');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('authUser');
         setToken(null);
+        setUser(null);
+        return null;
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
-      localStorage.removeItem('token');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('authUser');
       setToken(null);
-    } finally {
-      setLoading(false);
+      setUser(null);
+      return null;
     }
   };
 
@@ -86,7 +104,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (data.success) {
         setToken(data.token);
         setUser(data.user);
-        localStorage.setItem('token', data.token);
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('authUser', JSON.stringify(data.user));
         toast({
           title: "Welcome back!",
           description: `Logged in as ${data.user.name}`,
@@ -112,7 +131,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       setToken(demoToken);
       setUser(demoUser);
-      localStorage.setItem('token', demoToken);
+      localStorage.setItem('authToken', demoToken);
+      localStorage.setItem('authUser', JSON.stringify(demoUser));
       toast({
         title: "Demo Mode",
         description: `Logged in as ${demoUser.name}`,
@@ -136,7 +156,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (data.success) {
         setToken(data.token);
         setUser(data.user);
-        localStorage.setItem('token', data.token);
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('authUser', JSON.stringify(data.user));
         toast({
           title: "Account created!",
           description: `Welcome, ${data.user.name}!`,
@@ -162,7 +183,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       setToken(demoToken);
       setUser(demoUser);
-      localStorage.setItem('token', demoToken);
+      localStorage.setItem('authToken', demoToken);
+      localStorage.setItem('authUser', JSON.stringify(demoUser));
       toast({
         title: "Demo Mode",
         description: `Welcome, ${demoUser.name}!`,
@@ -174,7 +196,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('authUser');
     toast({
       title: "Logged out",
       description: "See you next time!",

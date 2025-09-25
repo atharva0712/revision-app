@@ -94,13 +94,13 @@ const App: React.FC = () => {
     }
   }, [recentExtractions]);
 
-  const handleLoginSuccess = async (token: string) => {
+  const handleLoginSuccess = async (token: string, user?: any) => {
     await authService.setToken(token);
     setAuthenticated(true);
     setShowRegister(false);
   };
 
-  const handleRegisterSuccess = async (token: string) => {
+  const handleRegisterSuccess = async (token: string, user?: any) => {
     await authService.setToken(token);
     setAuthenticated(true);
     setShowRegister(false);
@@ -111,6 +111,7 @@ const App: React.FC = () => {
     await chrome.storage.local.remove('lastContent'); // Clear stored content on logout
     await chrome.storage.local.remove('lastTopics'); // Clear stored topics on logout
     await chrome.storage.local.remove('recentExtractions'); // Clear recent extractions on logout
+    
     setAuthenticated(false);
     setContent(null); // Reset content and topics on logout
     setTopics([]);
@@ -120,8 +121,8 @@ const App: React.FC = () => {
   const handleGoToDashboard = async () => {
     const token = await authService.getToken();
     if (token) {
-      const url = `http://localhost:5173/dashboard?token=${token}`;
-      chrome.tabs.create({ url });
+      // Open dashboard in a new tab
+      chrome.tabs.create({ url: 'http://localhost:8081/dashboard' });
     }
   };
 
@@ -197,6 +198,7 @@ const App: React.FC = () => {
           setTopics={setTopics}
           content={content}
           onScanNewPage={handleClearContentAndTopics}
+          setLoading={setLoading}
         />
       )}
     </div>

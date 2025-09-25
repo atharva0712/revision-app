@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 interface RegisterProps {
-  onRegisterSuccess: (token: string) => void;
+  onRegisterSuccess: (token: string, user?: any) => void;
   onSwitchToLogin: () => void;
 }
 
@@ -25,7 +25,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterSuccess, onSwitchToLogin 
       const data = await res.json();
 
       if (data.success) {
-        onRegisterSuccess(data.token);
+        onRegisterSuccess(data.token, data.user);
       } else {
         setError(data.message || 'Registration failed');
       }

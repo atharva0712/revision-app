@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 interface LoginProps {
-  onLoginSuccess: (token: string) => void;
+  onLoginSuccess: (token: string, user?: any) => void;
   onSwitchToRegister: () => void;
 }
 
@@ -24,7 +24,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSwitchToRegister }) => 
       const data = await res.json();
 
       if (data.success) {
-        onLoginSuccess(data.token);
+        onLoginSuccess(data.token, data.user);
       } else {
         setError(data.message || 'Login failed');
       }

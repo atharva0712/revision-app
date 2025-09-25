@@ -122,6 +122,55 @@ app.post(
   }
 );
 
+// Custom prompt endpoint for re-extracting topics with user-provided instructions
+app.post(
+  "/api/extract-topics-custom",
+  validateContent,
+  async (req: express.Request, res: express.Response) => {
+    try {
+      const { customPrompt, ...contentData } = req.body;
+      console.log(`Received custom extraction request for: ${contentData.url} (${contentData.type})`);
+      
+      if (!customPrompt || typeof customPrompt !== 'string' || customPrompt.trim() === '') {
+        return res.status(400).json({
+          success: false,
+          error: 'Custom prompt is required and must be a non-empty string',
+        });
+      }
+
+      let processedContent: Content = contentData;
+
+      // If it's a PDF, run it through the content extractor service first
+      if (
+        processedContent.type === "pdf" &&
+        processedContent.text.includes("PDF_URL:")
+      ) {
+        console.log("PDF detected, processing with contentExtractor...");
+        processedContent = await contentExtractor.processPDF(processedContent);
+      }
+
+      const topics = await topicExtractor.extractTopics(processedContent, customPrompt.trim());
+      console.log(
+        `Successfully extracted ${topics.length} topics with custom prompt for: ${processedContent.title}`
+      );
+
+      res.status(200).json({
+        success: true,
+        topics,
+        customPromptUsed: customPrompt.trim(),
+        contentInfo: {
+          title: processedContent.title,
+          type: processedContent.type,
+          wordCount: processedContent.wordCount || 0,
+          processedAt: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      handleError(error, res);
+    }
+  }
+);
+
 // Batch processing endpoint
 app.post("/api/batch-process", async (req: express.Request, res: express.Response) => {
   try {

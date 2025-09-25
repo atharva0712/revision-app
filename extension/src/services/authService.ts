@@ -20,7 +20,7 @@ export const authService = {
     return !!token;
   },
 
-  async login(email: string, password: string): Promise<{ success: boolean; token?: string; message?: string }> {
+  async login(email: string, password: string): Promise<{ success: boolean; token?: string; user?: any; message?: string }> {
     try {
       const res = await fetch('http://localhost:3000/api/auth/login', {
         method: 'POST',
@@ -30,7 +30,11 @@ export const authService = {
       const data = await res.json();
       if (data.success && data.token) {
         await this.setToken(data.token);
-        return { success: true, token: data.token };
+        // Store user data if provided
+        if (data.user) {
+          await chrome.storage.local.set({ user: data.user });
+        }
+        return { success: true, token: data.token, user: data.user };
       } else {
         return { success: false, message: data.message || 'Login failed' };
       }
@@ -39,7 +43,7 @@ export const authService = {
     }
   },
 
-  async register(name: string, email: string, password: string): Promise<{ success: boolean; token?: string; message?: string }> {
+  async register(name: string, email: string, password: string): Promise<{ success: boolean; token?: string; user?: any; message?: string }> {
     try {
       const res = await fetch('http://localhost:3000/api/auth/register', {
         method: 'POST',
@@ -49,7 +53,11 @@ export const authService = {
       const data = await res.json();
       if (data.success && data.token) {
         await this.setToken(data.token);
-        return { success: true, token: data.token };
+        // Store user data if provided
+        if (data.user) {
+          await chrome.storage.local.set({ user: data.user });
+        }
+        return { success: true, token: data.token, user: data.user };
       } else {
         return { success: false, message: data.message || 'Registration failed' };
       }
@@ -60,5 +68,11 @@ export const authService = {
 
   async logout(): Promise<void> {
     await this.removeToken();
+    await chrome.storage.local.remove('user');
+  },
+
+  async getUser(): Promise<any | null> {
+    const result = await chrome.storage.local.get('user');
+    return result.user || null;
   },
 };
