@@ -11,56 +11,96 @@ interface TopicsPreviewProps {
 }
 
 const TopicsPreview: React.FC<TopicsPreviewProps> = ({ topics, setTopics, content, onScanNewPage }) => {
-  const handleAdd = async (idx: number) => {
-    const topicToAdd = topics[idx];
-    if (!topicToAdd) return;
+  const handleToggleSelect = (idx: number) => {
+    setTopics((prev: Topic[]) =>
+      prev.map((t: Topic, i: number) =>
+        i === idx ? { ...t, selected: !t.selected } : t
+      )
+    );
+  };
+
+  const handleProcessSelectedTopics = async () => {
+    const selectedTopics = topics.filter(topic => topic.selected);
+    
+    if (selectedTopics.length === 0) {
+      alert('Please select at least one topic to process.');
+      return;
+    }
 
     const token = await authService.getToken();
     if (!token) {
       console.error("No authentication token found. Please log in.");
-      // Optionally, show a message to the user
+      alert('Authentication required. Please log in again.');
       return;
     }
 
     try {
-      const res = await fetch('http://localhost:3000/api/topics', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': token,
-        },
-        body: JSON.stringify({
-          name: topicToAdd.name,
-          description: topicToAdd.description,
-          sourceURL: content.url,
-          sourceTitle: content.title,
-          sourceType: content.type,
-          extractedAt: topicToAdd.extractedFrom?.extractedAt || content.extractedAt, // Use topic's extractedAt if available, else content's
-          confidence: topicToAdd.confidence,
-          category: topicToAdd.category,
-          keywords: topicToAdd.keywords,
-        }),
+      // Process selected topics in batch
+      const processingPromises = selectedTopics.map(async (topic, originalIndex) => {
+        const topicIndex = topics.findIndex(t => t === topic);
+        
+        const res = await fetch('http://localhost:3000/api/topics', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': token,
+          },
+          body: JSON.stringify({
+            name: topic.name,
+            description: topic.description,
+            sourceURL: content.url,
+            sourceTitle: content.title,
+            sourceType: content.type,
+            extractedAt: topic.extractedFrom?.extractedAt || content.extractedAt,
+            confidence: topic.confidence,
+            category: topic.category,
+            keywords: topic.keywords,
+          }),
+        });
+
+        const data = await res.json();
+        
+        if (data.success) {
+          return { index: topicIndex, success: true, id: data.topic._id };
+        } else {
+          return { index: topicIndex, success: false, error: data.message };
+        }
       });
 
-      const data = await res.json();
+      const results = await Promise.all(processingPromises);
+      
+      // Update topics with processing results
+      setTopics((prev: Topic[]) =>
+        prev.map((topic, index) => {
+          const result = results.find(r => r.index === index);
+          if (result && result.success) {
+            return { ...topic, added: true, id: result.id };
+          }
+          return topic;
+        })
+      );
 
-      if (data.success) {
-        setTopics((prev: Topic[]) =>
-          prev.map((t: Topic, i: number) =>
-            i === idx ? { ...t, added: true, id: data.topic._id } : t
-          )
-        );
+      const successCount = results.filter(r => r.success).length;
+      const failureCount = results.length - successCount;
+      
+      if (failureCount === 0) {
+        alert(`Successfully processed ${successCount} topics for flashcard generation!`);
       } else {
-        // Optionally, show an error message to the user
+        alert(`Processed ${successCount} topics successfully. ${failureCount} failed to process.`);
       }
+
     } catch (error: any) {
-      // Optionally, show a network error message
+      console.error('Bulk processing failed:', error);
+      alert('Failed to process topics. Please try again.');
     }
   };
 
-  const handleRemove = (idx: number) => {
-    setTopics((prev: Topic[]) => prev.filter((_: Topic, i: number) => i !== idx));
+  const handleSelectAll = () => {
+    const allSelected = topics.every(topic => topic.selected);
+    setTopics(prev => prev.map(topic => ({ ...topic, selected: !allSelected })));
   };
+
+  const selectedCount = topics.filter(topic => topic.selected).length;
 
   return (
     <div className="p-4">
@@ -81,8 +121,18 @@ const TopicsPreview: React.FC<TopicsPreviewProps> = ({ topics, setTopics, conten
       >
         Scan New Page
       </button>
-      <h3 className="text-md font-semibold mb-2">Extracted Topics</h3>
-      <div className="space-y-2">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-md font-semibold">Extracted Topics ({selectedCount}/{topics.length} selected)</h3>
+        <div className="flex space-x-2">
+          <button
+            onClick={handleSelectAll}
+            className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded hover:bg-gray-300"
+          >
+            {topics.every(t => t.selected) ? 'Unselect All' : 'Select All'}
+          </button>
+        </div>
+      </div>
+      <div className="space-y-2 mb-4">
         {topics.length === 0 ? (
           <div className="text-gray-400">No topics found.</div>
         ) : (
@@ -90,13 +140,25 @@ const TopicsPreview: React.FC<TopicsPreviewProps> = ({ topics, setTopics, conten
             <TopicItem
               key={topic.id || idx}
               topic={topic}
-              onAdd={() => handleAdd(idx)}
-              onRemove={() => handleRemove(idx)}
-              added={!!topic.added}
+              onToggleSelect={() => handleToggleSelect(idx)}
+              selected={!!topic.selected}
             />
           ))
         )}
       </div>
+      {topics.length > 0 && (
+        <button
+          onClick={handleProcessSelectedTopics}
+          disabled={selectedCount === 0}
+          className={`w-full px-4 py-3 rounded font-medium transition-colors ${
+            selectedCount > 0
+              ? 'bg-green-600 text-white hover:bg-green-700'
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          }`}
+        >
+          Process {selectedCount} Selected Topic{selectedCount !== 1 ? 's' : ''} for Flashcards
+        </button>
+      )}
     </div>
   );
 };

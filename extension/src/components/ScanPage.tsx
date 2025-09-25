@@ -95,14 +95,21 @@ const ScanPage: React.FC<ScanPageProps> = ({
         const apiData = await apiResponse.json();
         console.log('Topics extracted from API:', apiData.topics?.length || 0);
         
-        const extractedTopics = apiData.topics || [];
+        const extractedTopics = (apiData.topics || []).map((topic: any) => ({
+          ...topic,
+          selected: true // Auto-tick all topics by default
+        }));
         setTopics(extractedTopics);
 
         // Add to recent extractions
         setRecentExtractions(prev => {
           const isDuplicate = prev.some(item => item.content.url === extractedContent.url);
           if (!isDuplicate) {
-            return [{ content: extractedContent, topics: extractedTopics }, ...prev].slice(0, 5);
+            const topicsWithSelection = extractedTopics.map((topic: any) => ({
+              ...topic,
+              selected: true // Ensure recent extractions also have selected state
+            }));
+            return [{ content: extractedContent, topics: topicsWithSelection }, ...prev].slice(0, 5);
           }
           return prev;
         });

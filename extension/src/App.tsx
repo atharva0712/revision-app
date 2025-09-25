@@ -12,6 +12,7 @@ export interface Topic {
   description: string;
   category?: string;
   added?: boolean;
+  selected?: boolean; // New property for tick/untick state
   confidence?: number;
   keywords?: string[];
   extractedFrom?: {
