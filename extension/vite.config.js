@@ -12,9 +12,14 @@ export default defineConfig({
       },
     },
     outDir: 'dist',
-    emptyOutDir: false, // Don't empty dist since we need to copy static files
+    emptyOutDir: true, // Clean build directory
+    copyPublicDir: false, // Disable automatic copying of public dir
   },
   define: {
     global: 'globalThis',
+  },
+  server: {
+    port: 5173,
+    strictPort: true
   }
 })

@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build && npm run copy-files",
     "build:extension": "npm run build && npm run prepare-extension",
-    "copy-files": "cp manifest.json dist/ && cp public/background.js dist/ && cp public/content.js dist/ && cp public/vite.svg dist/",
+    "copy-files": "cp manifest.json dist/ && cp public/background.js dist/ && cp public/content.js dist/ && cp public/vite.svg dist/ && cp -r public/icons dist/",
     "prepare-extension": "echo 'Extension built successfully! Load the dist/ folder as an unpacked extension in Chrome.'",
     "lint": "eslint .",
     "preview": "vite preview"

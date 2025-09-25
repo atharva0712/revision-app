@@ -35,7 +35,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     jwt.sign(
       payload,
       process.env.JWT_SECRET as string,
-      { expiresIn: '1h' },
+      { expiresIn: '7d' },
       (err, token) => {
         if (err) throw err;
         res.status(201).json({ success: true, token, user: { id: user.id, name: user.name, email: user.email } });
@@ -99,7 +99,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     jwt.sign(
       payload,
       process.env.JWT_SECRET as string,
-      { expiresIn: '1h' },
+      { expiresIn: '7d' },
       (err, token) => {
         if (err) throw err;
         res.json({ success: true, token, user: { id: user.id, name: user.name, email: user.email } });

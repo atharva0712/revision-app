@@ -90,6 +90,8 @@ dist
 # Gatsby files
 .cache/
 public
+# Allow extension public directory
+!extension/public
 
 # Vite build output
 dist/

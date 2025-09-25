@@ -188,6 +188,7 @@ const App: React.FC = () => {
           recentExtractions={recentExtractions}
           setRecentExtractions={setRecentExtractions}
           onSelectRecentExtraction={handleSelectRecentExtraction}
+          setAuthenticated={setAuthenticated}
         />
       ) : (
         <TopicsPreview

@@ -3,12 +3,12 @@ import { Content, Topic } from '../App';
 
 interface RecentExtractionsProps {
   recentExtractions: { content: Content; topics: Topic[] }[];
-  // onSelectExtraction: (content: Content, topics: Topic[]) => void; // Removed
+  onSelectRecentExtraction: (content: Content, topics: Topic[]) => void;
 }
 
 const RecentExtractions: React.FC<RecentExtractionsProps> = ({
   recentExtractions,
-  // onSelectExtraction, // Removed
+  onSelectRecentExtraction,
 }) => {
   if (recentExtractions.length === 0) {
     return null; // Don't render if there are no recent extractions
@@ -20,11 +20,17 @@ const RecentExtractions: React.FC<RecentExtractionsProps> = ({
       <ul className="space-y-2">
         {recentExtractions.map((item, index) => (
           <li key={index} className="flex items-center justify-between bg-white p-2 rounded shadow-sm border border-gray-200">
-            <div>
+            <div className="flex-1">
               <div className="font-medium text-sm text-gray-800">{item.content.title}</div>
-              <div className="text-xs text-gray-500">{item.content.url}</div>
+              <div className="text-xs text-gray-500 truncate">{item.content.url}</div>
+              <div className="text-xs text-gray-400">{item.topics?.length || 0} topics</div>
             </div>
-            {/* Removed Load button */}
+            <button
+              onClick={() => onSelectRecentExtraction(item.content, item.topics)}
+              className="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
+            >
+              Load
+            </button>
           </li>
         ))}
       </ul>
