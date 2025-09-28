@@ -35,12 +35,18 @@ export const sampleFlashcards: Record<string, IFlashcard[]> = {
     {
       _id: "fc1",
       front: "What is the React Context API used for?",
-      back: "The Context API allows you to share state between components without prop drilling. It's perfect for global state like user authentication, themes, or language preferences."
+      back: "The Context API allows you to share state between components without prop drilling. It's perfect for global state like user authentication, themes, or language preferences.",
+      mcqs: [
+        { _id: "mcq1", question: "Which of the following is a good use case for the Context API?", options: ["Component-specific state", "Global user settings", "Form input values", "Animation timing"], correctAnswer: "Global user settings" }
+      ]
     },
     {
       _id: "fc2", 
       front: "What are React Hooks and why are they useful?",
-      back: "Hooks are functions that let you use state and lifecycle features in functional components. They make components more reusable and easier to test while reducing complexity."
+      back: "Hooks are functions that let you use state and lifecycle features in functional components. They make components more reusable and easier to test while reducing complexity.",
+      mcqs: [
+        { _id: "mcq2", question: "Which hook is used to manage state in a functional component?", options: ["useEffect", "useState", "useContext", "useReducer"], correctAnswer: "useState" }
+      ]
     },
     {
       _id: "fc3",

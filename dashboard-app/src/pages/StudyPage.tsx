@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FlashcardViewer } from '@/components/FlashcardViewer';
+import { Flashcard } from '@/components/Flashcard';
+import { MCQPlayer } from '@/components/MCQPlayer';
 import { Loading } from '@/components/ui/loading';
 import { useAuth } from '@/contexts/AuthContext';
 import { ApiClient, ITopicWithContent } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 
 export const StudyPage: React.FC = () => {
   const { topicId } = useParams<{ topicId: string }>();
@@ -13,6 +17,8 @@ export const StudyPage: React.FC = () => {
   const { toast } = useToast();
   const [topic, setTopic] = useState<ITopicWithContent | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [viewMode, setViewMode] = useState<'flashcard' | 'mcq'>('flashcard');
 
   const apiClient = new ApiClient(token);
 
@@ -50,14 +56,34 @@ export const StudyPage: React.FC = () => {
     }
   };
 
-  const handleComplete = async () => {
+  const handleNext = () => {
+    if (currentIndex < (topic?.flashcards.length || 0) - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setViewMode('flashcard');
+    } else {
+      handleSessionComplete();
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+      setViewMode('flashcard');
+    }
+  };
+
+  const handleMcqComplete = () => {
+    handleNext();
+  };
+
+  const handleSessionComplete = async () => {
     if (!topicId) return;
 
     try {
       await apiClient.updateProgress(topicId, { flashcardsCompleted: true });
       toast({
         title: "Great job!",
-        description: "Flashcard session completed",
+        description: "Study session completed",
       });
     } catch (error) {
       console.error('Error updating progress:', error);
@@ -73,7 +99,7 @@ export const StudyPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-space-gradient flex items-center justify-center">
-        <Loading size="lg" text="Loading flashcards..." />
+        <Loading size="lg" text="Loading study session..." />
       </div>
     );
   }
@@ -82,8 +108,8 @@ export const StudyPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-space-gradient flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-2">No Flashcards Available</h2>
-          <p className="text-muted-foreground mb-4">This topic doesn't have any flashcards yet.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">No Content Available</h2>
+          <p className="text-muted-foreground mb-4">This topic doesn't have any flashcards or questions yet.</p>
           <button
             onClick={handleBack}
             className="text-primary hover:text-accent transition-colors"
@@ -95,11 +121,65 @@ export const StudyPage: React.FC = () => {
     );
   }
 
+  const currentFlashcard = topic.flashcards[currentIndex];
+  const progress = ((currentIndex + 1) / topic.flashcards.length) * 100;
+
   return (
-    <FlashcardViewer
-      flashcards={topic.flashcards}
-      onComplete={handleComplete}
-      onBack={handleBack}
-    />
+    <div className="min-h-screen bg-space-gradient p-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <Button 
+            onClick={handleBack} 
+            variant="outline" 
+            className="cyber-border"
+          >
+            <ChevronLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </Button>
+          <div className="text-center">
+            <p className="text-muted-foreground text-sm">
+              Card {currentIndex + 1} of {topic.flashcards.length}
+            </p>
+            <Progress value={progress} className="w-32 mt-2" />
+          </div>
+          <div className="w-24" /> {/* Spacer */}
+        </div>
+
+        <div className="flex justify-center items-center flex-col">
+          {viewMode === 'flashcard' ? (
+            <Flashcard flashcard={currentFlashcard} />
+          ) : (
+            <MCQPlayer mcqs={currentFlashcard.mcqs || []} onComplete={handleMcqComplete} />
+          )}
+
+          {/* Controls */}
+          <div className="flex justify-center space-x-4 mt-8">
+            {viewMode === 'flashcard' && (
+              <>
+                <Button
+                  onClick={handlePrevious}
+                  disabled={currentIndex === 0}
+                  variant="outline"
+                  className="cyber-border"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <Button onClick={() => setViewMode('mcq')} className="cyber-border">
+                  Test Your Knowledge
+                </Button>
+                <Button
+                  onClick={handleNext}
+                  variant="outline"
+                  className="cyber-border"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };

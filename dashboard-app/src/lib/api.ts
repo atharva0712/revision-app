@@ -15,8 +15,17 @@ interface ITopic {
 interface IFlashcard {
   _id: string;
   front: string;
-  back: string;
+  back:string;
+  mcqs?: IMcq[];
 }
+
+interface IMcq {
+  _id: string;
+  question: string;
+  options: string[];
+  correctAnswer: string;
+}
+
 
 interface IQuestion {
   _id: string;
