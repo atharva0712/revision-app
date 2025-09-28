@@ -10,7 +10,7 @@ import { IQuestion } from '@/lib/api';
 
 interface AssessmentViewerProps {
   questions: IQuestion[];
-  onComplete: (score: number) => void;
+  onComplete: (completedQuestions: { question: string; isCorrect: boolean }[]) => void;
   onBack: () => void;
 }
 
@@ -50,12 +50,12 @@ export const AssessmentViewer: React.FC<AssessmentViewerProps> = ({
     setIsSubmitted(true);
     setShowResults(true);
     
-    const correctAnswers = questions.reduce((count, question, index) => {
-      return answers[index] === question.correctAnswer ? count + 1 : count;
-    }, 0);
-    
-    const score = Math.round((correctAnswers / questions.length) * 100);
-    onComplete(score);
+    const completedQuestions = questions.map((question, index) => ({
+      question: question._id,
+      isCorrect: answers[index] === question.correctAnswer,
+    }));
+
+    onComplete(completedQuestions);
   };
 
   const getScoreColor = (score: number) => {

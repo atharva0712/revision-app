@@ -1,17 +1,15 @@
 import { Router } from 'express';
-import { getProgressForUser, createOrUpdateProgress } from '../controllers/progress.controller.js';
-import auth from '../middleware/auth.js';
+import auth from '../middleware/auth';
+import {
+  getAllUserProgress,
+  updateFlashcardProgress,
+  submitAssessment,
+} from '../controllers/progress.controller';
 
 const router = Router();
 
-// @route   GET /api/progress
-// @desc    Get all progress for the authenticated user
-// @access  Private
-router.get('/', auth, getProgressForUser);
-
-// @route   POST /api/progress
-// @desc    Create or update a user's progress on a topic
-// @access  Private
-router.post('/', auth, createOrUpdateProgress);
+router.get('/', auth, getAllUserProgress);
+router.post('/flashcard', auth, updateFlashcardProgress);
+router.post('/assessment', auth, submitAssessment);
 
 export default router;

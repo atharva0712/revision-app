@@ -20,6 +20,7 @@ import cyberHero from '@/assets/cyber-dashboard-hero.jpg';
 export const Dashboard: React.FC = () => {
   const { user, token, logout } = useAuth();
   const [topics, setTopics] = useState<ITopic[]>([]);
+  const [progress, setProgress] = useState<{ [topicId: string]: number }>({});
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -27,6 +28,7 @@ export const Dashboard: React.FC = () => {
 
   useEffect(() => {
     fetchTopics();
+    fetchProgress();
   }, []);
 
   const fetchTopics = async () => {
@@ -39,6 +41,17 @@ export const Dashboard: React.FC = () => {
       console.error('Error fetching topics:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProgress = async () => {
+    try {
+      const response = await apiClient.getAllProgress();
+      if (response.success) {
+        setProgress(response.progress);
+      }
+    } catch (error) {
+      console.error('Error fetching progress:', error);
     }
   };
 
@@ -269,7 +282,7 @@ export const Dashboard: React.FC = () => {
                             topic={topic}
                             onStudy={handleStudy}
                             onAssessment={handleAssessment}
-                            progress={Math.floor(Math.random() * 100)} // TODO: Real progress tracking
+                            progress={progress[topic._id] || 0}
                           />
                         ))}
                       </div>

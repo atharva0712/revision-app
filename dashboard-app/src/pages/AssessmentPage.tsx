@@ -50,11 +50,14 @@ export const AssessmentPage: React.FC = () => {
     }
   };
 
-  const handleComplete = async (score: number) => {
+  const handleComplete = async (completedQuestions: { question: string; isCorrect: boolean }[]) => {
     if (!topicId) return;
 
     try {
-      await apiClient.updateProgress(topicId, { assessmentScore: score });
+      await apiClient.submitAssessment(topicId, completedQuestions);
+
+      const correctAnswers = completedQuestions.filter(q => q.isCorrect).length;
+      const score = Math.round((correctAnswers / completedQuestions.length) * 100);
       
       const message = score >= 80 ? "Excellent work!" : 
                      score >= 60 ? "Good job!" : "Keep practicing!";

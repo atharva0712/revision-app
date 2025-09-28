@@ -19,6 +19,7 @@ export const StudyPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'flashcard' | 'mcq'>('flashcard');
+  const [isFlipped, setIsFlipped] = useState(false);
 
   const apiClient = new ApiClient(token);
 
@@ -60,6 +61,7 @@ export const StudyPage: React.FC = () => {
     if (currentIndex < (topic?.flashcards.length || 0) - 1) {
       setCurrentIndex(currentIndex + 1);
       setViewMode('flashcard');
+      setIsFlipped(false);
     } else {
       handleSessionComplete();
     }
@@ -69,7 +71,12 @@ export const StudyPage: React.FC = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
       setViewMode('flashcard');
+      setIsFlipped(false);
     }
+  };
+
+  const handleFlip = () => {
+    setIsFlipped(!isFlipped);
   };
 
   const handleMcqComplete = () => {
@@ -148,7 +155,14 @@ export const StudyPage: React.FC = () => {
 
         <div className="flex justify-center items-center flex-col">
           {viewMode === 'flashcard' ? (
-            <Flashcard flashcard={currentFlashcard} />
+            <Flashcard 
+              flashcard={currentFlashcard} 
+              isFlipped={isFlipped}
+              onFlip={() => {
+                setIsFlipped(!isFlipped);
+                apiClient.updateFlashcardProgress(topic._id, currentFlashcard._id);
+              }}
+            />
           ) : (
             <MCQPlayer mcqs={currentFlashcard.mcqs || []} onComplete={handleMcqComplete} />
           )}

@@ -1,23 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { IFlashcard } from '@/lib/api';
 
 interface FlashcardProps {
   flashcard: IFlashcard;
+  isFlipped: boolean;
+  onFlip: () => void;
 }
 
-export const Flashcard: React.FC<FlashcardProps> = ({ flashcard }) => {
-  const [isFlipped, setIsFlipped] = useState(false);
-
-  const handleFlip = () => {
-    setIsFlipped(!isFlipped);
-  };
-
+export const Flashcard: React.FC<FlashcardProps> = ({ flashcard, isFlipped, onFlip }) => {
   return (
     <div className="w-full max-w-2xl h-96">
       <div
         className={`flashcard-flip relative w-full h-full cursor-pointer ${isFlipped ? 'flipped' : ''}`}
-        onClick={handleFlip}
+        onClick={onFlip}
       >
         {/* Front */}
         <Card className="flashcard-face cyber-card absolute inset-0 flex items-center justify-center p-8">

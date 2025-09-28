@@ -133,10 +133,21 @@ export class ApiClient {
     return this.request(`/topics/${id}`);
   }
 
-  async updateProgress(topicId: string, progress: { assessmentScore?: number; flashcardsCompleted?: boolean }): Promise<{ success: boolean; progress: IProgress }> {
-    return this.request('/progress', {
+  async getAllProgress(): Promise<{ success: boolean; progress: { [topicId: string]: number } }> {
+    return this.request('/progress');
+  }
+
+  async updateFlashcardProgress(topicId: string, flashcardId: string): Promise<{ success: boolean }> {
+    return this.request('/progress/flashcard', {
       method: 'POST',
-      body: JSON.stringify({ topicId, ...progress }),
+      body: JSON.stringify({ topicId, flashcardId }),
+    });
+  }
+
+  async submitAssessment(topicId: string, completedQuestions: { question: string; isCorrect: boolean }[]): Promise<{ success: boolean }> {
+    return this.request('/progress/assessment', {
+      method: 'POST',
+      body: JSON.stringify({ topicId, completedQuestions }),
     });
   }
 }

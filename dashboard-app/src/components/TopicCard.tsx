@@ -63,15 +63,13 @@ export const TopicCard: React.FC<TopicCardProps> = ({
             {topic.description}
           </p>
 
-          {progress > 0 && (
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Progress</span>
-                <span className="text-primary font-medium">{progress}%</span>
-              </div>
-              <Progress value={progress} className="h-2" />
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Progress</span>
+              <span className="text-primary font-medium">{progress}%</span>
             </div>
-          )}
+            <Progress value={progress} className="h-2" />
+          </div>
 
           <div className="flex space-x-2 pt-2">
             <Button

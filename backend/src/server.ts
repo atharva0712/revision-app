@@ -10,7 +10,7 @@ import connectDB from "./config/db.js";
 import { validateContent, handleError } from "./middleware/validation.js";
 import authRoutes from "./routes/auth.routes.js";
 import topicRoutes from "./routes/topic.routes.js";
-import progressRoutes from "./routes/progress.routes.js";
+import progressRoutes from './routes/progress.routes';
 import { topicExtractor } from "./services/topicExtractor.js";
 import { contentExtractor } from "./services/pdfExtractor.js";
 
@@ -53,7 +53,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // Use Auth Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/topics", topicRoutes);
-app.use("/api/progress", progressRoutes);
+app.use('/api/progress', progressRoutes);
 
 // Rate limiting for all API routes
 const apiLimiter = rateLimit({
