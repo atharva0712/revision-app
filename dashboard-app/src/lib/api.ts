@@ -1,6 +1,6 @@
 import { sampleTopics, sampleFlashcards, sampleQuestions } from './sampleData';
 
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
 interface ITopic {
   _id: string;
@@ -106,8 +106,16 @@ export class ApiClient {
     return this.request('POST', `/progress/${topicId}`, data);
   }
 
-  public async updateFlashcardProgress(topicId: string, flashcardId: string): Promise<any> {
-    return this.request('POST', `/progress/${topicId}/flashcard/${flashcardId}`);
+  public async updateFlashcardProgress(topicId: string, flashcardId: string, rating: number): Promise<any> {
+    return this.request('POST', `/progress/${topicId}/flashcard/${flashcardId}`, { rating });
+  }
+
+  public async getDueFlashcards(topicId: string): Promise<{ success: boolean; dueFlashcards: IFlashcard[]; newFlashcards: IFlashcard[]; totalDue: number }> {
+    return this.request('GET', `/progress/${topicId}/flashcards/due`);
+  }
+
+  public async getDashboardStats(): Promise<{ success: boolean; dueTodayCount: number; dueByTopic: { [topicId: string]: number } }> {
+    return this.request('GET', '/progress/dashboard');
   }
 
   public async generateDeepDiagnostic(topicId: string): Promise<{ success: boolean; questions: IQuestion[] }> {

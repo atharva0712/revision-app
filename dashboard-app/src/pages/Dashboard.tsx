@@ -14,13 +14,15 @@ import { TopicCard } from '@/components/TopicCard';
 import { Loading } from '@/components/ui/loading';
 import { useAuth } from '@/contexts/AuthContext';
 import { ApiClient, ITopic } from '@/lib/api';
-import { LogOut, Brain, BookOpen, TrendingUp, User } from 'lucide-react';
+import { LogOut, Brain, BookOpen, TrendingUp, User, Clock } from 'lucide-react';
 import cyberHero from '@/assets/cyber-dashboard-hero.jpg';
 
 export const Dashboard: React.FC = () => {
   const { user, token, logout } = useAuth();
   const [topics, setTopics] = useState<ITopic[]>([]);
   const [progress, setProgress] = useState<{ [topicId: string]: number }>({});
+  const [dueToday, setDueToday] = useState(0);
+  const [dueByTopic, setDueByTopic] = useState<Map<string, number>>(new Map());
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -29,6 +31,23 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     fetchTopics();
     fetchProgress();
+    fetchDashboardStats();
+
+    // Auto-refresh dashboard stats every 30 seconds to show updated due counts
+    const interval = setInterval(() => {
+      fetchDashboardStats();
+    }, 30000); // 30 seconds
+
+    // Refresh when user returns to the tab/window
+    const handleFocus = () => {
+      fetchDashboardStats();
+    };
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const fetchTopics = async () => {
@@ -52,6 +71,20 @@ export const Dashboard: React.FC = () => {
       }
     } catch (error) {
       console.error('Error fetching progress:', error);
+    }
+  };
+
+  const fetchDashboardStats = async () => {
+    try {
+      const response = await apiClient.getDashboardStats();
+      if (response.success) {
+        setDueToday(response.dueTodayCount);
+        // Convert object to Map for easier access
+        const dueMap = new Map(Object.entries(response.dueByTopic).map(([k, v]) => [k, v as number]));
+        setDueByTopic(dueMap);
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
     }
   };
 
@@ -206,12 +239,12 @@ export const Dashboard: React.FC = () => {
                 <Card className="cyber-card">
                   <CardContent className="p-6">
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-neon-purple/10 rounded-lg">
-                        <User className="w-6 h-6 text-neon-purple" />
+                      <div className="p-2 bg-orange-500/10 rounded-lg">
+                        <Clock className="w-6 h-6 text-orange-500" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold text-neon-purple">85%</p>
-                        <p className="text-sm text-muted-foreground">Average Score</p>
+                        <p className="text-2xl font-bold text-orange-500">{dueToday}</p>
+                        <p className="text-sm text-muted-foreground">Due Today</p>
                       </div>
                     </div>
                   </CardContent>
@@ -283,6 +316,7 @@ export const Dashboard: React.FC = () => {
                             onStudy={handleStudy}
                             onAssessment={handleAssessment}
                             progress={progress[topic._id] || 0}
+                            dueCount={dueByTopic.get(topic._id) || 0}
                           />
                         ))}
                       </div>

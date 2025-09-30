@@ -3,7 +3,13 @@ import { Schema, model, Document, Types } from 'mongoose';
 export interface IUserTopicProgress extends Document {
   user: Types.ObjectId;
   topic: Types.ObjectId;
-  completedFlashcards: Types.ObjectId[];
+  flashcardStats: {
+    total: number;
+    started: number;
+    mastered: number;
+    learning: number;
+    new: number;
+  };
   assessmentAttempts: {
     score: number;
     completedQuestions: {
@@ -13,6 +19,10 @@ export interface IUserTopicProgress extends Document {
     attemptedAt: Date;
   }[];
   lastStudiedAt?: Date;
+  topicStartedAt?: Date;
+  flashcardsMasteredAt?: Date;
+  assessmentPassed: boolean;
+  topicCompleted: boolean;
   masteryAchievedAt?: Date;
   flashcardsCompleted?: boolean;
   assessmentCompleted?: boolean;
@@ -22,7 +32,13 @@ const UserTopicProgressSchema = new Schema<IUserTopicProgress>(
   {
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     topic: { type: Schema.Types.ObjectId, ref: 'Topic', required: true },
-    completedFlashcards: [{ type: Schema.Types.ObjectId, ref: 'Flashcard' }],
+    flashcardStats: {
+      total: { type: Number, default: 0 },
+      started: { type: Number, default: 0 },
+      mastered: { type: Number, default: 0 },
+      learning: { type: Number, default: 0 },
+      new: { type: Number, default: 0 }
+    },
     assessmentAttempts: [
       {
         score: { type: Number, required: true },
@@ -36,6 +52,10 @@ const UserTopicProgressSchema = new Schema<IUserTopicProgress>(
       },
     ],
     lastStudiedAt: { type: Date },
+    topicStartedAt: { type: Date },
+    flashcardsMasteredAt: { type: Date },
+    assessmentPassed: { type: Boolean, default: false },
+    topicCompleted: { type: Boolean, default: false },
     masteryAchievedAt: { type: Date },
     flashcardsCompleted: { type: Boolean, default: false },
     assessmentCompleted: { type: Boolean, default: false },

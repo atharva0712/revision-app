@@ -5,12 +5,16 @@ import {
   updateFlashcardProgress,
   submitAssessment,
   updateGeneralProgress,
+  getDueFlashcards,
+  getDashboardStats,
 } from '../controllers/progress.controller.js';
 
 const router = Router();
 
 router.get('/', auth, getAllUserProgress);
-router.post('/flashcard', auth, updateFlashcardProgress);
+router.post('/:topicId/flashcard/:flashcardId', auth, updateFlashcardProgress);
+router.get('/:topicId/flashcards/due', auth, getDueFlashcards);
+router.get('/dashboard', auth, getDashboardStats);
 router.post('/assessment', auth, submitAssessment);
 router.post('/:topicId', auth, updateGeneralProgress);
 

@@ -12,13 +12,15 @@ interface TopicCardProps {
   onStudy: (topicId: string) => void;
   onAssessment: (topicId: string) => void;
   progress?: number;
+  dueCount?: number;
 }
 
 export const TopicCard: React.FC<TopicCardProps> = ({ 
   topic, 
   onStudy, 
   onAssessment, 
-  progress = 0 
+  progress = 0,
+  dueCount = 0 
 }) => {
   return (
     <motion.div
@@ -38,7 +40,15 @@ export const TopicCard: React.FC<TopicCardProps> = ({
               {topic.name}
             </CardTitle>
             {topic.sourceURL && (
-              <Button variant="ghost" size="sm" className="p-1 opacity-70 hover:opacity-100">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-1 opacity-70 hover:opacity-100"
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering card's study/assessment actions
+                  window.open(topic.sourceURL, '_blank');
+                }}
+              >
                 <ExternalLink className="h-4 w-4" />
               </Button>
             )}
@@ -47,9 +57,12 @@ export const TopicCard: React.FC<TopicCardProps> = ({
             <Badge variant="secondary" className="text-xs">
               {topic.sourceTitle}
             </Badge>
-            <Badge variant="outline" className="text-xs">
+            <Badge 
+              variant={dueCount > 0 ? "destructive" : "outline"} 
+              className="text-xs"
+            >
               <BookOpen className="w-3 h-3 mr-1" />
-              {topic.flashcards.length} cards
+              {dueCount > 0 ? `${dueCount} cards due` : `${topic.flashcards.length} cards`}
             </Badge>
             <Badge variant="outline" className="text-xs">
               <Brain className="w-3 h-3 mr-1" />

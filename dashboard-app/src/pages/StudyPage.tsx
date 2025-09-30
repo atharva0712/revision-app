@@ -21,6 +21,8 @@ export const StudyPage: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'flashcard' | 'mcq'>('flashcard');
   const [isFlipped, setIsFlipped] = useState(false);
+  const [showRating, setShowRating] = useState(false);
+  const [completedInSession, setCompletedInSession] = useState<string[]>([]);
   const [isGeneratingDiagnostic, setIsGeneratingDiagnostic] = useState(false);
 
   const apiClient = new ApiClient(token);
@@ -35,13 +37,35 @@ export const StudyPage: React.FC = () => {
     if (!topicId) return;
 
     try {
-      const response = await apiClient.getTopic(topicId);
-      if (response.success) {
-        setTopic(response.topic);
+      // Get topic details and due flashcards
+      const [topicResponse, dueResponse] = await Promise.all([
+        apiClient.getTopic(topicId),
+        apiClient.getDueFlashcards(topicId)
+      ]);
+
+      if (topicResponse.success && dueResponse.success) {
+        // Only use due flashcards and new flashcards (no duplicates)
+        const studyFlashcards = [...dueResponse.dueFlashcards, ...dueResponse.newFlashcards];
+        
+        if (studyFlashcards.length === 0) {
+          toast({
+            title: "All done for today!",
+            description: "No cards are due for review right now.",
+            variant: "default",
+          });
+          navigate('/dashboard');
+          return;
+        }
+
+        // Set topic with only the cards that need studying (no duplicates)
+        setTopic({
+          ...topicResponse.topic,
+          flashcards: studyFlashcards
+        });
       } else {
         toast({
           title: "Error",
-          description: "Could not load topic",
+          description: "Could not load topic or due flashcards",
           variant: "destructive",
         });
         navigate('/dashboard');
@@ -78,7 +102,48 @@ export const StudyPage: React.FC = () => {
   };
 
   const handleFlip = () => {
-    setIsFlipped(!isFlipped);
+    if (!isFlipped) {
+      setIsFlipped(true);
+      setShowRating(true);
+    } else {
+      setIsFlipped(false);
+      setShowRating(false);
+    }
+  };
+
+  const handleRate = async (rating: number) => {
+    if (!topic || !topicId) return;
+    
+    const currentFlashcard = topic.flashcards[currentIndex];
+    
+    try {
+      const response = await apiClient.updateFlashcardProgress(topicId, currentFlashcard._id, rating);
+      
+      if (response.success) {
+        // Add to completed session list
+        setCompletedInSession(prev => [...prev, currentFlashcard._id]);
+        
+        // Show toast with next review info
+        const nextReviewDate = new Date(response.nextReview);
+        const ratingText = ['', 'Again', 'Hard', 'Good', 'Easy'][rating];
+        toast({
+          title: `Rated: ${ratingText}`,
+          description: `Next review: ${nextReviewDate.toLocaleDateString()}`,
+          variant: "default",
+        });
+        
+        // Move to next card
+        handleNext();
+        setShowRating(false);
+      }
+    } catch (error) {
+      console.error('Error rating flashcard:', error);
+      toast({
+        title: "Error",
+        description: "Could not save your rating",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleMcqComplete = () => {
@@ -159,7 +224,7 @@ export const StudyPage: React.FC = () => {
   }
 
   const currentFlashcard = topic.flashcards[currentIndex];
-  const progress = ((currentIndex + 1) / topic.flashcards.length) * 100;
+  const progress = (completedInSession.length / topic.flashcards.length) * 100;
 
   return (
     <div className="min-h-screen bg-space-gradient p-4">
@@ -194,10 +259,9 @@ export const StudyPage: React.FC = () => {
             <Flashcard 
               flashcard={currentFlashcard} 
               isFlipped={isFlipped}
-              onFlip={() => {
-                setIsFlipped(!isFlipped);
-                apiClient.updateFlashcardProgress(topic._id, currentFlashcard._id);
-              }}
+              onFlip={handleFlip}
+              showRatingButtons={showRating}
+              onRate={handleRate}
             />
           ) : (
             <MCQPlayer mcqs={currentFlashcard.mcqs || []} onComplete={handleMcqComplete} />

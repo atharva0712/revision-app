@@ -1,134 +1,57 @@
 # Revision App
 
-A comprehensive study revision application with browser extension, web dashboard, and backend API integration. Designed to help students organize and optimize their revision process.
+This project is a full-stack application designed to help users revise and study topics by leveraging AI to generate learning materials like flashcards and quizzes from uploaded documents and web content.
 
-## 🏗️ Project Structure
+## Project Structure
 
-This is a monorepo containing three main components:
+The project is a monorepo-style repository containing three distinct packages:
 
-```
-revision-app/
-├── backend/          # Node.js/Express API server
-├── dashboard-app/    # React web dashboard
-├── extension/        # Chrome browser extension
-└── README.md        # This file
-```
+-   `backend/`: A Node.js (Express) and TypeScript API that handles user authentication, data persistence, and the core AI-powered content generation services.
+-   `dashboard-app/`: A React (Vite) and TypeScript single-page application that provides the main user interface for the platform.
+-   `extension/`: A browser extension for capturing content from web pages.
 
-## 📱 Components
-
-### 🖥️ Dashboard App (`dashboard-app/`)
-- **Tech Stack**: React 19, TypeScript, Vite, TailwindCSS
-- **Purpose**: Web-based dashboard for managing revision sessions and data
-- **Features**: Modern React application with responsive design
-
-### 🔧 Backend (`backend/`)
-- **Tech Stack**: Node.js, Express, TypeScript, MongoDB, OpenAI API
-- **Purpose**: REST API server providing data and AI-powered features
-- **Features**: 
-  - PDF parsing and processing
-  - AI integration for smart revision suggestions
-  - User authentication and data management
-  - Rate limiting and security middleware
-
-### 🌐 Browser Extension (`extension/`)
-- **Tech Stack**: React, TypeScript, Chrome Extension APIs
-- **Purpose**: Browser extension for seamless revision workflow integration
-- **Features**: Modern popup interface with content script integration
-
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
-- Node.js (v18 or later)
-- npm or yarn
-- MongoDB (for backend)
-- Chrome browser (for extension development)
 
-### Installation
+-   Node.js (v18 or later)
+-   npm (v9 or later)
+-   MongoDB instance (local or cloud)
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/revision-app.git
-   cd revision-app
-   ```
+### Installation & Setup
 
-2. **Install dependencies for each component**
-   ```bash
-   # Backend
-   cd backend
-   npm install
-   cd ..
+1.  **Clone the repository:**
+    ```bash
+    git clone <repository-url>
+    cd revision-app
+    ```
 
-   # Dashboard App
-   cd dashboard-app
-   npm install
-   cd ..
+2.  **Backend Setup:**
+    ```bash
+    cd backend
+    npm install
+    ```
+    -   Create a `.env` file by copying the example: `cp .env.example .env`
+    -   Fill in the required values in your new `.env` file (MongoDB URI, JWT Secret, etc.).
+    -   Run the backend server:
+        ```bash
+        npm run dev
+        ```
+    -   The API will be running on the port specified in your `.env` file (default: 3001).
 
-   # Extension
-   cd extension
-   npm install
-   cd ..
-   ```
+3.  **Frontend (Dashboard) Setup:**
+    ```bash
+    cd ../dashboard-app
+    npm install
+    ```
+    -   Create a `.env` file by copying the example: `cp .env.example .env`
+    -   Ensure the `VITE_API_URL` in your `.env` file points to the correct backend address.
+    -   Run the development server:
+        ```bash
+        npm run dev
+        ```
+    -   The dashboard will be accessible at `http://localhost:5173`.
 
-### Development
-
-#### Backend
-```bash
-cd backend
-# Copy environment variables
-cp .env.example .env
-# Edit .env with your configuration
-npm run dev
-```
-
-#### Dashboard App
-```bash
-cd dashboard-app
-npm run dev
-```
-
-#### Browser Extension
-```bash
-cd extension
-npm run dev
-# For building the extension:
-npm run build:extension
-# Then load the `dist/` folder as an unpacked extension in Chrome
-```
-
-## 🔧 Configuration
-
-### Backend Configuration
-Create a `.env` file in the `backend/` directory with:
-- MongoDB connection string
-- OpenAI API key
-- JWT secret
-- Other API keys as needed
-
-### Extension Development
-- Load the extension in Chrome developer mode
-- Point to the `extension/dist/` folder after building
-
-## 📂 Key Files
-
-- `backend/src/server.ts` - Main server entry point
-- `dashboard-app/src/App.tsx` - Dashboard main component
-- `extension/src/main.tsx` - Extension popup entry point
-- `extension/manifest.json` - Extension configuration
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 🔗 Links
-
-- [Backend Documentation](./backend/README.md)
-- [Dashboard Documentation](./dashboard-app/README.md)  
-- [Extension Documentation](./extension/README.md)
+4.  **Browser Extension Setup:**
+    -   Navigate to the `extension` directory.
+    -   Follow the instructions in `INSTALLATION.md` to load the extension in your browser.
