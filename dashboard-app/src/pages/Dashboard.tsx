@@ -46,7 +46,7 @@ export const Dashboard: React.FC = () => {
 
   const fetchProgress = async () => {
     try {
-      const response = await apiClient.getAllProgress();
+      const response = await apiClient.getAllUserProgress();
       if (response.success) {
         setProgress(response.progress);
       }

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createTopic, getTopics, getTopicById, retryTopicGeneration } from '../controllers/topic.controller.js';
+import { createTopic, getTopics, getTopicById, retryTopicGeneration, generateDeepDiagnostic } from '../controllers/topic.controller.js';
 import auth from '../middleware/auth.js';
 
 const router = Router();
@@ -23,5 +23,10 @@ router.get('/:id', auth, getTopicById);
 // @desc    Retry content generation for a failed topic
 // @access  Private
 router.post('/:id/retry', auth, retryTopicGeneration);
+
+// @route   POST /api/topics/:id/deep-diagnostic
+// @desc    Generate a deep diagnostic assessment for a topic
+// @access  Private
+router.post('/:id/deep-diagnostic', auth, generateDeepDiagnostic);
 
 export default router;

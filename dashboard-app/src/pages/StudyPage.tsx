@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import type { IQuestion } from '@/types';
 
 export const StudyPage: React.FC = () => {
   const { topicId } = useParams<{ topicId: string }>();
@@ -20,6 +21,7 @@ export const StudyPage: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'flashcard' | 'mcq'>('flashcard');
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isGeneratingDiagnostic, setIsGeneratingDiagnostic] = useState(false);
 
   const apiClient = new ApiClient(token);
 
@@ -103,10 +105,38 @@ export const StudyPage: React.FC = () => {
     navigate('/dashboard');
   };
 
-  if (loading) {
+  const handleDeepDiagnostic = async () => {
+    if (!topicId) return;
+
+    setIsGeneratingDiagnostic(true);
+    try {
+      const response = await apiClient.generateDeepDiagnostic(topicId);
+      if (response.success && response.questions.length > 0) {
+        // Navigate to a new assessment page, passing the questions
+        navigate('/diagnostic-assessment', { state: { questions: response.questions, topicName: topic?.name } });
+      } else {
+        toast({
+          title: "Error",
+          description: "Could not generate deep diagnostic questions.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error('Error generating deep diagnostic:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate deep diagnostic.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingDiagnostic(false);
+    }
+  };
+
+  if (loading || isGeneratingDiagnostic) {
     return (
       <div className="min-h-screen bg-space-gradient flex items-center justify-center">
-        <Loading size="lg" text="Loading study session..." />
+        <Loading size="lg" text={isGeneratingDiagnostic ? "Generating deep diagnostic..." : "Loading study session..."} />
       </div>
     );
   }
@@ -150,7 +180,13 @@ export const StudyPage: React.FC = () => {
             </p>
             <Progress value={progress} className="w-32 mt-2" />
           </div>
-          <div className="w-24" /> {/* Spacer */}
+          <Button
+            onClick={handleDeepDiagnostic}
+            disabled={isGeneratingDiagnostic}
+            className="cyber-button-tertiary"
+          >
+            Deep Diagnostic
+          </Button>
         </div>
 
         <div className="flex justify-center items-center flex-col">

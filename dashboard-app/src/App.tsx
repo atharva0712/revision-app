@@ -9,6 +9,7 @@ import { Auth } from "./pages/Auth";
 import { Dashboard } from "./pages/Dashboard";
 import { StudyPage } from "./pages/StudyPage";
 import { AssessmentPage } from "./pages/AssessmentPage";
+import { DiagnosticAssessmentPage } from "./pages/DiagnosticAssessmentPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AssessmentPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/diagnostic-assessment" 
+              element={
+                <ProtectedRoute>
+                  <DiagnosticAssessmentPage />
                 </ProtectedRoute>
               } 
             />

@@ -10,7 +10,7 @@ import connectDB from "./config/db.js";
 import { validateContent, handleError } from "./middleware/validation.js";
 import authRoutes from "./routes/auth.routes.js";
 import topicRoutes from "./routes/topic.routes.js";
-import progressRoutes from './routes/progress.routes';
+import progressRoutes from './routes/progress.routes.js';
 import { topicExtractor } from "./services/topicExtractor.js";
 import { contentExtractor } from "./services/pdfExtractor.js";
 
@@ -41,7 +41,7 @@ app.use(
       "http://localhost:5173",
       "http://localhost:8081",
     ],
-    methods: ["GET", "POST", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-auth-token"],
   })
 );

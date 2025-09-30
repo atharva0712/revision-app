@@ -14,6 +14,8 @@ export interface IUserTopicProgress extends Document {
   }[];
   lastStudiedAt?: Date;
   masteryAchievedAt?: Date;
+  flashcardsCompleted?: boolean;
+  assessmentCompleted?: boolean;
 }
 
 const UserTopicProgressSchema = new Schema<IUserTopicProgress>(
@@ -35,6 +37,8 @@ const UserTopicProgressSchema = new Schema<IUserTopicProgress>(
     ],
     lastStudiedAt: { type: Date },
     masteryAchievedAt: { type: Date },
+    flashcardsCompleted: { type: Boolean, default: false },
+    assessmentCompleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

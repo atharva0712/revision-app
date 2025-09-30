@@ -1,6 +1,50 @@
 import { Types } from 'mongoose';
 import type { ITopic } from '../models/Topic.js';
 
+export const buildDiagnosticPrompt = (topic: ITopic): string => {
+  const topicName = String(topic.name || '');
+  const topicDescription = String(topic.description || 'No description provided.');
+
+  return `You are an expert educational diagnostician. Your task is to create a deep diagnostic assessment for the user on the following topic. The goal is to test their knowledge from foundational concepts to advanced applications, helping them identify and remedy knowledge gaps.
+
+TOPIC DETAILS:
+Title: ${topicName}
+Description: ${topicDescription}
+
+INSTRUCTIONS:
+1.  **Generate 10-15 Questions:** Create a set of 10 to 15 multiple-choice questions.
+2.  **Tiered Difficulty:** The questions must be ordered by difficulty, starting with the easiest and progressing to the most challenging.
+    *   **Easy (First ~4 questions):** Focus on basic definitions, key terms, and fundamental concepts.
+    *   **Medium (Next ~6 questions):** Focus on application of concepts, simple scenarios, and comparing/contrasting key ideas.
+    *   **Hard (Final ~5 questions):** Focus on complex scenarios, analysis, synthesis of multiple concepts, and problem-solving.
+3.  **Detailed Explanations:** For EACH question, provide a highly detailed 'explanation'. This is the most important part. The explanation should not just state the right answer, but comprehensively explain the underlying concepts, why the correct answer is right, and why the other options are incorrect. It should be a mini-lesson.
+4.  **Multiple Choice:** Each question must have 4 options, with only one correct answer.
+
+RESPONSE FORMAT:
+Provide your response as a single JSON object with one top-level key: 'diagnosticQuestions'.
+
+'''json
+{
+  "diagnosticQuestions": [
+    {
+      "questionText": "[Easy Question 1]",
+      "options": ["[Option A]", "[Option B]", "[Option C]", "[Option D]"],
+      "correctAnswer": "[Correct Option]",
+      "explanation": "[VERY DETAILED explanation of the concept, the correct answer, and why other options are wrong.]"
+    },
+    {
+      "questionText": "[Easy Question 2]",
+      "options": ["[Option A]", "[Option B]", "[Option C]", "[Option D]"],
+      "correctAnswer": "[Correct Option]",
+      "explanation": "[VERY DETAILED explanation...]"
+    }
+  ]
+}
+'''
+
+Ensure the JSON is valid and strictly follows this structure. The quality and detail of the explanations are critical.`;
+};
+
 export const buildGenerationPrompt = (topic: ITopic): string => {
   // Ensure we're working with primitive values, not String objects
   const topicName = String(topic.name || '');

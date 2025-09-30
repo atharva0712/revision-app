@@ -3,12 +3,16 @@ import OpenAI from 'openai';
 import Flashcard, { type IFlashcard } from '../models/Flashcard.js';
 import Question, { type IQuestion } from '../models/Question.js';
 import Topic, { type ITopic } from '../models/Topic.js';
-import { buildGenerationPrompt } from '../prompts/generationPrompts.js';
+import { buildGenerationPrompt, buildDiagnosticPrompt } from '../prompts/generationPrompts.js';
 
 // Define the expected structure of the AI's response
 interface AIGenerationResponse {
   flashcards: Array<Omit<IFlashcard, '_id' | 'topic' | 'createdAt' | 'updatedAt'>>;
   assessmentQuestions: Array<Omit<IQuestion, '_id' | 'topic' | 'createdAt' | 'updatedAt'>>;
+}
+
+interface AIDiagnosticGenerationResponse {
+    diagnosticQuestions: Array<Omit<IQuestion, '_id' | 'topic' | 'createdAt' | 'updatedAt'>>;
 }
 
 class GenerationService {
@@ -26,6 +30,39 @@ class GenerationService {
       this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     }
     return this.openai;
+  }
+
+  public async generateDiagnosticQuestions(topic: ITopic): Promise<IQuestion[]> {
+    try {
+      const openai = this.getOpenAI();
+      const prompt = buildDiagnosticPrompt(topic);
+
+      const response = await openai.chat.completions.create({
+        model: 'gpt-3.5-turbo', // Or gpt-4, depending on desired quality/cost
+        messages: [
+          { role: 'system', content: 'You are an expert educational content creator. Generate a diagnostic assessment based on the provided topic.' },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 2500, // Increased token limit for more detailed questions
+        temperature: 0.5, // Lower temperature for more focused and predictable questions
+        response_format: { type: 'json_object' },
+      });
+
+      const messageContent = response.choices[0]?.message?.content;
+      if (!messageContent) {
+        throw new Error('OpenAI returned empty response for diagnostic generation.');
+      }
+
+      const aiResponse = JSON.parse(messageContent) as AIDiagnosticGenerationResponse;
+
+      // We are not saving these questions, just returning them
+      return aiResponse.diagnosticQuestions as IQuestion[];
+
+    } catch (error: any) {
+      console.error(`Error generating diagnostic questions for topic ${topic._id}:`, error);
+      // Re-throw the error to be handled by the controller
+      throw new Error('Failed to generate diagnostic assessment.');
+    }
   }
 
   public async generateContent(topic: ITopic): Promise<void> {

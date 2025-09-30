@@ -50,22 +50,22 @@ export const AssessmentPage: React.FC = () => {
     }
   };
 
-  const handleComplete = async (completedQuestions: { question: string; isCorrect: boolean }[]) => {
+  const handleComplete = async (score: number) => {
     if (!topicId) return;
 
     try {
-      await apiClient.submitAssessment(topicId, completedQuestions);
+      // The AssessmentViewer already calculates the score, so we just use it.
+      // We might want to send the score to the backend for tracking later.
+      // await apiClient.submitAssessment(topicId, completedQuestions); // This would need to be adapted if we track individual questions
 
-      const correctAnswers = completedQuestions.filter(q => q.isCorrect).length;
-      const score = Math.round((correctAnswers / completedQuestions.length) * 100);
-      
-      const message = score >= 80 ? "Excellent work!" : 
+      const message = score >= 80 ? "Excellent work!" :
                      score >= 60 ? "Good job!" : "Keep practicing!";
       
       toast({
         title: message,
         description: `Assessment completed with ${score}% score`,
       });
+      navigate('/dashboard'); // Navigate back to dashboard after completion
     } catch (error) {
       console.error('Error updating progress:', error);
     }
@@ -103,6 +103,7 @@ export const AssessmentPage: React.FC = () => {
   return (
     <AssessmentViewer
       questions={topic.assessment}
+      topicId={topicId}
       onComplete={handleComplete}
       onBack={handleBack}
     />

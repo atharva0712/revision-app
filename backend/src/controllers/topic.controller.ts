@@ -142,3 +142,31 @@ export const retryTopicGeneration = async (req: Request, res: Response): Promise
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
+// @route   POST /api/topics/:id/deep-diagnostic
+// @desc    Generate a deep diagnostic assessment for a topic
+// @access  Private
+export const generateDeepDiagnostic = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user || !req.user.id) {
+      res.status(401).json({ success: false, message: 'Not authorized, no user ID' });
+      return;
+    }
+
+    const topic = await Topic.findOne({ _id: req.params.id, user: req.user.id });
+
+    if (!topic) {
+      res.status(404).json({ success: false, message: 'Topic not found' });
+      return;
+    }
+
+    // Call the generation service to get diagnostic questions
+    const diagnosticQuestions = await generationService.generateDiagnosticQuestions(topic);
+
+    res.status(200).json({ success: true, questions: diagnosticQuestions });
+
+  } catch (err: any) {
+    console.error('Error generating deep diagnostic assessment:', err.message);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
